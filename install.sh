@@ -180,10 +180,13 @@ openstack security group create --description "Security group with tag: $securit
 current_time=$(date +"%H:%M:%S")
 echo "$current_date $current_time Adding rules to $security_group"
 openstack security group rule create --protocol tcp --dst-port 22:22 --ingress "$security_group" > /dev/null 
-openstack security group rule create --protocol udp --dst-port 161:161 --ingress "$security_group" > /dev/null 
-openstack security group rule create --protocol tcp --dst-port 80:80 --ingress "$security_group" > /dev/null 
+openstack security group rule create --protocol udp --dst-port 6000:6000 --ingress "$security_group" > /dev/null 
+openstack security group rule create --protocol udp --dst-port 161:161  "$security_group" > /dev/null
+openstack security group rule create --protocol tcp --dst-port 5000:5000 --ingress "$security_group" > /dev/null 
+openstack security group rule create --protocol tcp --dst-port 80:80 --ingress "$security_group" > /dev/null
 openstack security group rule create --protocol icmp "$security_group" > /dev/null 
-#openstack security group rule create --protocol any --ingress "$security_group"
+#openstack security group rule create --protocol any --ingress "$security_group" > /dev/null
+#openstack security group rule create --protocol any --egress "$security_group"
 echo "$current_date $current_time Security rule added to security group"
 
 fi
@@ -195,7 +198,7 @@ fi
 
 # Check if the subnet already exists
 #subnet_exists=$(openstack subnet show -f value -c  "$subnet_name" 2>/dev/null)
-subnet_id=$(openstack subnet show -f value -c id  "$subnet_name" )
+subnet_id=$(openstack subnet show -f value -c id  "$subnet_name" > /dev/null ) 
 #echo "Subnet with the name '$subnet_name' and '$subnet_id' "
 current_time=$(date +"%H:%M:%S")
 if [ -n "$subnet_id" ]; then
@@ -427,29 +430,40 @@ scp  -o BatchMode=yes $private_key ubuntu@$floating_ip_bastion:~/.ssh  > /dev/nu
 scp  -o BatchMode=yes  $ssh_config_file ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 #scp  -o BatchMode=yes  -r ansible ubuntu@$floating_ip_bastion:~/.ssh
 scp  -o BatchMode=yes  application2.py ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
-scp  -o BatchMode=yes  haproxy.cfg.j2 ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
+#scp  -o BatchMode=yes  haproxy.cfg.j2 ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 scp  -o BatchMode=yes  hosts ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 scp  -o BatchMode=yes  my_flask_app.service ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 scp  -o BatchMode=yes  site.yaml ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 scp  -o BatchMode=yes  config ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 scp  -o BatchMode=yes  snmpd.conf ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
+scp  -o BatchMode=yes  my_load_balancer.cfg.j2 ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
+scp  -o BatchMode=yes  nginx.cfg.j2 ubuntu@$floating_ip_bastion:~/.ssh > /dev/null
 
 
-ssh -i $public_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " > /dev/null
+
+ssh -i $public_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " 
 current_time=$(date +"%H:%M")
-echo "$current_date $current_time   Site Verification.."
+echo "$current_date $current_time   HTTP  Verification.."
 
 for ((i=1; i<=3; i++))
 do
     current_time=$(date +"%H:%M:%S")
     echo "$current_date $current_time Request $i:"
-    curl http://$floating_ip_proxy
+    curl http://$floating_ip_proxy:5000
     echo "================"
+    current_time=$(date +"%H:%M:%S")
+    snmp_output=$(snmpwalk -v2c -c public $floating_ip_proxy:6000)
+    # Filter the part containing "dev"
+    filtered_output=$(echo "$snmp_output" | grep 'dev')
+    echo "$filtered_output"
+    echo "================"
+    
 done
+
 
 end_time=$(date +%s)
 execution_time=$((end_time - start_time))
-echo "================"
+
 echo "Script execution time: $execution_time seconds"
 
 

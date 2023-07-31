@@ -380,8 +380,13 @@ current_time=$(date +"%H:%M:%S")
 for ((i=1; i<=$local_active_hosts; i++))
 do
     echo "$current_date $current_time Request $i:"
-    curl http://$floating_ip_proxy
+    curl http://$floating_ip_proxy:5000
     echo "================"
+    snmp_output=$(snmpwalk -v2c -c public $floating_ip_proxy:6000)
+    # Filter the part containing "dev"
+    filtered_output=$(echo "$snmp_output" | grep 'dev')
+    echo "$filtered_output"
+     echo "================"
 done
 
 
@@ -507,8 +512,13 @@ ssh -i $public_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts
 for ((i=1; i<=$local_active_hosts; i++))
 do
     echo "$current_date $current_time Request $i:"
-    curl http://$floating_ip_proxy
+    curl http://$floating_ip_proxy:5000
     echo "================"
+    echo "================"
+    snmp_output=$(snmpwalk -v2c -c public $floating_ip_proxy:6000)
+    # Filter the part containing "dev"
+    filtered_output=$(echo "$snmp_output" | grep 'dev')
+    echo "$filtered_output"
 done
 
 
@@ -520,7 +530,12 @@ else
    for ((i=1; i<=$local_active_hosts ; i++))
 do
     echo "$current_date $current_time Request $i:"
-    curl http://$floating_ip_proxy
+    curl http://$floating_ip_proxy:5000
+    echo "================"
+    snmp_output=$(snmpwalk -v2c -c public $floating_ip_proxy:6000)
+    # Filter the part containing "dev"
+    filtered_output=$(echo "$snmp_output" | grep 'dev')
+    echo "$filtered_output"
     echo "================"
 done
  
@@ -530,7 +545,7 @@ fi
 echo "================"
 current_time=$(date +"%H:%M:%S")
 echo "$current_date $current_time Waiting for 30s..."
-sleep 5
+sleep 30
 done
 
 
