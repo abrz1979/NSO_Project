@@ -1,0 +1,15 @@
+
+# SSH configuration for test_deva
+Host test_deva
+  HostName 10.0.0.132
+  User ubuntu
+  StrictHostKeyChecking no
+  IdentityFile ~/.ssh/id_rsa
+
+# SSH configuration for test_proxy
+Host test_proxy
+  HostName 10.0.0.150
+  User ubuntu
+  StrictHostKeyChecking no
+  IdentityFile ~/.ssh/id_rsa
+
