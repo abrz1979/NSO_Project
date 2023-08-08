@@ -258,6 +258,11 @@ echo "$current_date $current_time Active hosts on the remote server: $active_hos
 local_active_hosts=$(cat server.conf | grep -oE '[0-9]+')
 #echo "$current_date $current_time config num is $local_active_hosts"
 
+if [ "$local_active_hosts" -lt 1 ]; then
+    echo -e "\033[31m $current_date $current_time  Error: At least 1 server must be available."
+    exit 1  # Exit with an error status code
+fi
+
 #echo " config num is $local_active_hosts"
 current_time=$(date +"%H:%M:%S")
 # Compare local_active_hosts with active_hosts_remote

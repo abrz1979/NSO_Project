@@ -57,7 +57,7 @@ current_time=$(date +"%H:%M:%S")
 if [ -e "$public_key" ]; then
     echo "$current_date $current_time Key $public_key exists."
 else
-    echo "\033[31mError: $current_date $current_time Key $public_key does not exist."
+    echo -e "\033[31mError: $current_date $current_time Key $public_key does not exist."
     exit 1
 fi
  
@@ -65,15 +65,7 @@ current_time=$(date +"%H:%M:%S")
 if [ -e "$private_key" ]; then
     echo "$current_date $current_time Key $private_key exists."
 else
-    echo "\033[31mError: $current_date $current_time Key $private_key does not exist."
-    exit 1
-fi
-
-current_time=$(date +"%H:%M:%S")
-if openstack flavor show "$flavor" >/dev/null 2>&1; then
-    echo "$current_date $current_time Flavor $flavor exists."
-else
-    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Exiting program."
+    echo -e "\033[31mError: $current_date $current_time Key $private_key does not exist."
     exit 1
 fi
 
@@ -85,6 +77,14 @@ fi
 
 # Source the openrc file
 source "$openrc_file"
+
+current_time=$(date +"%H:%M:%S")
+if openstack flavor show "$flavor" >/dev/null 2>&1; then
+    echo "$current_date $current_time Flavor $flavor exists."
+else
+    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Exiting program."
+    exit 1
+fi
 
 cat <<EOF >hosts
 
@@ -198,7 +198,7 @@ fi
 
 # Check if the subnet already exists
 #subnet_exists=$(openstack subnet show -f value -c  "$subnet_name" 2>/dev/null)
-subnet_id=$(openstack subnet show -f value -c id  "$subnet_name" > /dev/null ) 
+subnet_id=$(openstack subnet show -f value -c id  "$subnet_name"  ) 
 #echo "Subnet with the name '$subnet_name' and '$subnet_id' "
 current_time=$(date +"%H:%M:%S")
 if [ -n "$subnet_id" ]; then

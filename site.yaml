@@ -160,33 +160,7 @@
         name: "{{loadbalancer_name}}"
         state: restarted
         
-    - name: Ping Nginx IP
-      ping:
-        data: "{{ ansible_default_ipv4.address }}"
-        
-    - name: Send HTTP request
-      command: "curl -s http://{{ansible_default_ipv4.address}}:5000"
-      register: curl_output
-
-    - name: Display HTTP response
-      debug:
-        var: curl_output.stdout
-
-    - name: Send HTTP request
-      command: "curl -s http://{{ansible_default_ipv4.address}}:5000"
-      register: curl_output
-
-    - name: Display HTTP response
-      debug:
-        var: curl_output.stdout
-        
-    - name: Send HTTP request
-      command: "curl -s http://{{ansible_default_ipv4.address}}:5000"
-      register: curl_output
-
-    - name: Display HTTP response
-      debug:
-        var: curl_output.stdout
+ 
     
 
 
