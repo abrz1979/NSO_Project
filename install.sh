@@ -70,6 +70,14 @@ else
 fi
 
 
+
+echo"Install JQ and snmp "
+# Install jq (JSON processor)
+sudo dnf install -y jq
+
+# Install snmp
+sudo dnf install -y net-snmp-utils
+
 # echo "creating publickey"
 # Generate public key file from private key
 #ssh-keygen -y -f "$private_key" > "$public_key"
@@ -408,7 +416,7 @@ echo "$current_date $current_time Base SSH configuration file created: $ssh_conf
 current_time=$(date +"%H:%M:%S")
 # Install Ansible on the server
 echo "$current_date $current_time Install ansible on Bastion host"
-ssh -o StrictHostKeyChecking=no -i $public_key ubuntu@$floating_ip_bastion 'sudo apt update >/dev/null 2>&1 && sudo apt install -y ansible >/dev/null 2>&1' > sshout.txt 2>&1
+ssh -o StrictHostKeyChecking=no -i $private_key ubuntu@$floating_ip_bastion 'sudo apt update >/dev/null 2>&1 && sudo apt install -y ansible >/dev/null 2>&1' > sshout.txt 2>&1
 current_time=$(date +"%H:%M:%S")
 if grep -q "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED"  sshout.txt ; then
     echo "Warning message found! Running ssh-keygen command..."
@@ -441,7 +449,7 @@ scp  -o BatchMode=yes  nginx.cfg.j2 ubuntu@$floating_ip_bastion:~/.ssh > /dev/nu
 
 
 
-ssh -i $public_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " 
+ssh -i $private_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " 
 current_time=$(date +"%H:%M")
 echo "$current_date $current_time   HTTP  Verification.."
 

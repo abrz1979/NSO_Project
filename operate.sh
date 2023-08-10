@@ -380,7 +380,7 @@ scp  -o BatchMode=yes hosts ubuntu@$floating_ip_bastion:~/.ssh/ > /dev/null
 
 sleep 10s
 #read -p  "Enter wait.."
-ssh -i $public_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " > /dev/null 
+ssh -i $private_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " > /dev/null 
 current_time=$(date +"%H:%M:%S")
 for ((i=1; i<=$local_active_hosts; i++))
 do
@@ -512,7 +512,7 @@ current_time=$(date +"%H:%M:%S")
 echo "$current_date $current_time Copying config ssh and host to the Bastion server"
 scp  -o StrictHostKeyChecking=no config ubuntu@$floating_ip_bastion:~/.ssh > /dev/null 2>&1
 scp  -o BatchMode=yes hosts ubuntu@$floating_ip_bastion:~/.ssh/ > /dev/null 2>&1
-ssh -i $public_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " > /dev/null 2>&1
+ssh -i $private_key ubuntu@$floating_ip_bastion "ansible-playbook -i ~/.ssh/hosts ~/.ssh/site.yaml " > /dev/null 2>&1
 
 for ((i=1; i<=$local_active_hosts; i++))
 do
