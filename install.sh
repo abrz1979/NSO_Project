@@ -73,10 +73,10 @@ fi
 
 echo "Install JQ and snmp "
 # Install jq (JSON processor)
-sudo apt install -y jq
+sudo apt install -y jq 2>/dev/null
 
 # Install snmp
-sudo apt install -y snmp
+sudo apt install -y snmp 2>/dev/null
 
 # echo "creating publickey"
 # Generate public key file from private key

@@ -228,23 +228,23 @@ sleep 10s
 
 
 # Stop the telegraf service
-ssh -o StrictHostKeyChecking=no -i $public_key ubuntu@$floating_ip_bastion 'sudo systemctl stop telegraf >/dev/null 2>&1'
+ssh -o StrictHostKeyChecking=no -i $private_key ubuntu@$floating_ip_bastion 'sudo systemctl stop telegraf >/dev/null 2>&1'
 # Replace the configuration file with the temporary file
 
 scp  -o BatchMode=yes  telegraf.conf.tmp ubuntu@$floating_ip_bastion:~/.ssh
 # Replace the configuration file with the temporary file
-ssh -o StrictHostKeyChecking=no -i $public_key ubuntu@$floating_ip_bastion 'sudo cp ~/.ssh/telegraf.conf.tmp /etc/telegraf/telegraf.conf'
+ssh -o StrictHostKeyChecking=no -i $private_key ubuntu@$floating_ip_bastion 'sudo cp ~/.ssh/telegraf.conf.tmp /etc/telegraf/telegraf.conf'
 
 
 # Start the telegraf service
-ssh -o StrictHostKeyChecking=no -i $public_key ubuntu@$floating_ip_bastion 'sudo systemctl start telegraf >/dev/null 2>&1'
+ssh -o StrictHostKeyChecking=no -i $private_key ubuntu@$floating_ip_bastion 'sudo systemctl start telegraf >/dev/null 2>&1'
 #ssh -o StrictHostKeyChecking=no -i id_rsa.pub ubuntu@$floating_ip_bastion 'sudo systemctl status telegraf '
 
 sleep 5s
 
 # Execute the InfluxDB command and capture the output
 #remote_output=(ssh -o StrictHostKeyChecking=no -i id_rsa.pub ubuntu@$floating_ip_bastion  < monitor.sh) 
-remote_output=$(ssh -o StrictHostKeyChecking=no -i $public_key ubuntu@$floating_ip_bastion "bash -s" < active-server.sh)
+remote_output=$(ssh -o StrictHostKeyChecking=no -i $private_key ubuntu@$floating_ip_bastion "bash -s" < active-server.sh)
 echo "$remote_output"
 current_time=$(date +"%H:%M:%S")
 active_hosts_remote=$(echo "$remote_output" | awk '/Number of active hosts:/ {print $NF}')
