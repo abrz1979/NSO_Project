@@ -6,13 +6,14 @@ The Private and public key should be replaced on the place the proram run .Do no
 EX: ./intsatll.sh abrz.rnc BTH id_rsa.pub
 
 
-These application should be installed before runing the script : snmp and JQ(JSON processor <<Sudo apt install -y jq and sudo apt install -y snmp>>
+These application should be installed before runing the script :
+---> snmp  <<sudo apt install -y snmp>>
+--->JQ(JSON processor <<sudo apt install -y jq>>
+--->Openstack 5.8.0  <<sudo apt  install python3-openstackclient>> 
 
 The Enviroment needed to run Scipt:
 
 22.04.1-Ubuntu
-
-openstack 5.8.0
 
 User in Sweden/Stohkolm
 
