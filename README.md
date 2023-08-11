@@ -7,8 +7,11 @@ EX: ./intsatll.sh abrz.rnc BTH id_rsa.pub
 
 
 These application should be installed before runing the script :
+
 ---> snmp  <<sudo apt install -y snmp>>
+
 --->JQ(JSON processor <<sudo apt install -y jq>>
+
 --->Openstack 5.8.0  <<sudo apt  install python3-openstackclient>> 
 
 The Enviroment needed to run Scipt:
