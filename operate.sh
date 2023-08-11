@@ -49,6 +49,15 @@ security_group="${tag}_securitygroup"
 # Source the openrc file
 source "$openrc_file"
 
+# Define a function that will be executed when Ctrl+C is pressed
+ctrl_c() {
+    echo "Ctrl+C detected. Exiting..."
+    exit 1
+}
+
+# Set up the signal handler
+trap ctrl_c SIGINT
+
 current_date=$(date +"%Y-%m-%d")
 
 
@@ -73,6 +82,14 @@ echo "$current_date $current_time Detecting suitable image, looking for Ubuntu $
 #        echo  -e "$current_date $current_time Image found:\n $image  "
         echo -e "$current_date $current_time Image ID: $image_id  "
     fi
+current_time=$(date +"%H:%M:%S")
+if openstack flavor show "$flavor" >/dev/null 2>&1; then
+    echo "$current_date $current_time Flavor $flavor exists."
+else
+    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Exiting program.\033[31 "
+    exit 1
+fi
+
 
 # Find the external network
 current_time=$(date +"%H:%M:%S")

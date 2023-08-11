@@ -51,13 +51,16 @@ current_date=$(date +"%Y-%m-%d")
 start_time=$(date +%s)
 
 current_time=$(date +"%H:%M:%S")
-echo -e "$current_date $current_time Deploymnet is in progess ....  \n"
- 
+echo  -e ""
+echo  -e "$current_date $current_time Deploymnet is in progess ....  \n"
+
+echo -e "\033[31mWarning: JQ and snmp should be installed before running the script  <<Sudo apt install -y jq and sudo apt install -y snmp>> \033[0m " 
+
 current_time=$(date +"%H:%M:%S")
 if [ -e "$public_key" ]; then
     echo "$current_date $current_time Key $public_key exists."
 else
-    echo -e "\033[31mError: $current_date $current_time Key $public_key does not exist."
+    echo -e "\033[31mError: $current_date $current_time Key $public_key does not exist. \033[0m"
     exit 1
 fi
  
@@ -65,18 +68,18 @@ current_time=$(date +"%H:%M:%S")
 if [ -e "$private_key" ]; then
     echo "$current_date $current_time Key $private_key exists."
 else
-    echo -e "\033[31mError: $current_date $current_time Key $private_key does not exist."
+    echo -e "\033[31mError: $current_date $current_time Key $private_key does not exist. \033[0m "
     exit 1
 fi
 
 
 
-echo "Install JQ and snmp "
+
 # Install jq (JSON processor)
-sudo apt install -y jq 2>/dev/null
+#sudo apt install -y jq 2>/dev/null
 
 # Install snmp
-sudo apt install -y snmp 2>/dev/null
+#sudo apt install -y snmp 2>/dev/null
 
 # echo "creating publickey"
 # Generate public key file from private key
@@ -90,7 +93,7 @@ current_time=$(date +"%H:%M:%S")
 if openstack flavor show "$flavor" >/dev/null 2>&1; then
     echo "$current_date $current_time Flavor $flavor exists."
 else
-    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Exiting program."
+    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Exiting program.\033[31 "
     exit 1
 fi
 
@@ -462,8 +465,8 @@ do
     current_time=$(date +"%H:%M:%S")
     snmp_output=$(snmpwalk -v2c -c public $floating_ip_proxy:6000)
     # Filter the part containing "dev"
-    filtered_output=$(echo "$snmp_output" | grep 'dev')
-    echo "$filtered_output"
+    filtered_output=$(echo  " $snmp_output " | grep 'dev')
+    echo -e "\033[32m $filtered_output\033[0m"
     echo "================"
     
 done
