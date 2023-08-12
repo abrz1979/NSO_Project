@@ -23,6 +23,9 @@ network_name="${tag}_network"
 # Set the key name with the tag
 key_name="${tag}_key"
 
+# Set the key name with the tag
+float_IP="${tag}_floatip"
+
 # Set the subnet name with the tag
 subnet_name="${tag}_subnet"
 
@@ -122,37 +125,117 @@ if [ -z "$external_net" ]; then
     exit 1
 fi
 
+# Run the openstack server list command and capture the output
+command_output=$(openstack server list)
 
+# Extract the line containing "BTH_bastion"
+desired_line=$(echo "$command_output" | grep "$server_name")
 
-# Check if there are available floating IP addresses
-floating_ips=$(openstack floating ip list -f value -c "Floating IP Address" )
-   #  echo -e "Floating IP list is : \n $floating_ips "
-floating_num=$(openstack floating ip list -f value -c "Floating IP Address" | wc -l )
-     
+# Extract the IP addresses part from the line
+ip_addresses_part=$(echo "$desired_line" | awk -F'[|]' '{print $5}')
 
-if [[ floating_num -ge 1 ]]; then
-    # Use the first available floating IP for the Bastion server
-    floating_ip_bastion=$(echo "$floating_ips" | awk 'NR==1')
-    #echo "floating_ip_bastion $floating_ip_bastion"
-    
-    
-    if [[ floating_num -ge 2 ]]; then
-        # Use the second available floating IP for the proxy server
-        floating_ip_proxy=$(echo "$floating_ips" | awk 'NR==2')
-       # echo "floating_ip_proxy $floating_ip_proxy"
-    else
-        # Create a new floating IP address for the proxy server
-        floating_ip_proxy=$(openstack floating ip create  $external_net)
-    fi
+# Extract the second IP address
+floating_ip_bastion=$(echo "$ip_addresses_part" | awk -F',' '{print $2}' | tr -d ' ')
+
+#echo "Current  Floating IP for $server_name: $floating_ip_bastion"
+
+desired_line_p=$(echo "$command_output" | grep "$proxy_server_name")
+
+# Extract the IP addresses part from the line
+ip_addresses_part_p=$(echo "$desired_line_p" | awk -F'[|]' '{print $5}')
+
+# Extract the second IP address
+floating_ip_proxy=$(echo "$ip_addresses_part_p " | awk -F',' '{print $2}' | tr -d ' ')
+
+#echo "Current  Floating IP for $proxy_server_name: $floating_ip_proxy"
+
+# Get the list of all floating IPs
+all_floating_ips=$(openstack floating ip list -f value -c "Floating IP Address")
+
+# Get the list of assigned floating IPs
+assigned_ips=$(openstack floating ip list --status ACTIVE -f value -c "Floating IP Address" --long | grep -vE "None$")
+
+current_time=$(date +"%H:%M:%S")
+# Check if the second IP address is non-empty
+if [ -n "$floating_ip_bastion" ]; then
+    echo "$current_date $current_time $server_name has the  IP address: $floating_ip_bastion. "
+
 else
-    # Create two new floating IP addresses
-    current_time=$(date +"%H:%M:%S")
+    echo "$current_date $current_time $server_name does not have a floating IP address. "
     
-    echo "$current_date $current_time Creating floating IP ..."
-    floating_ip_1=$(openstack floating ip create  $external_net ) 
-    floating_ip_2=$(openstack floating ip create  $external_net)
-     
+
+
+# If there are no floating IPs, create two new ones
+if [ -z "$all_floating_ips" ]; then
+    echo "$current_date $current_time Creating  new floating IP for $server_name..."
+        openstack floating ip create --tag "$tag" $external_net > /dev/null
+else
+    # Check if all_floating_ips are the same as assigned_ips
+    if [ "$all_floating_ips" == "$assigned_ips" ]; then
+        # If they're the same, create two new floating IPs
+        echo "$current_date $current_time Creating new floating IP for $server_name...--"
+            openstack floating ip create --tag "$tag"  $external_net > /dev/null
+        
+      else
+        # If there's only one unassigned, create one new floating IP
+        echo "$current_date $current_time No need to create new floating IP $server_name "
+    fi
+  fi        
 fi
+
+
+    
+current_time=$(date +"%H:%M:%S")
+
+# Check if the second IP address is non-empty
+if [ -n "$floating_ip_proxy" ]; then
+    echo "$current_date $current_time $proxy_server_name has the IP address: $floating_ip_proxy."
+
+else
+    echo "$current_date $current_time $proxy_server_name does not have a floating IP."
+
+
+
+# If there are no floating IPs, create two new ones
+if [ -z "$all_floating_ips" ]; then
+    echo "$current_date $current_time Creating  new floating IP $proxy_server_name..."
+        openstack floating ip create --tag "$tag" $external_net > /dev/null
+else
+    # Check if all_floating_ips are the same as assigned_ips
+    if [ "$all_floating_ips" == "$assigned_ips" ]; then
+        # If they're the same, create two new floating IPs
+        echo "$current_date $current_time Creating new floating IP for $proxy_server_name..."
+            openstack floating ip create --tag "$tag"  $external_net > /dev/null
+        
+    else
+    
+    # Split the IP lists into arrays for comparison
+        IFS=$'\n' read -r -d '' -a all_ips <<< "$all_floating_ips"
+        IFS=$'\n' read -r -d '' -a assigned_ips_array <<< "$assigned_ips"
+      
+
+        # Calculate the difference in IP counts
+        all_ips_count=${#all_ips[@]}
+        #echo "$all_ips_count"
+        assigned_ips_count=${#assigned_ips_array[@]}
+        #echo "$assigned_ips_count"
+        ip_difference=$((all_ips_count - assigned_ips_count))
+        #echo " $ip_difference"
+
+        if [ "$ip_difference" -gt 1 ]; then
+            echo "$current_date $current_time We have Free ip address to assign. No need to create new IPs."
+        else
+        echo "$current_date $current_time Creating new floating IP for $proxy_server_name..."
+         openstack floating ip create --tag "$tag"  $external_net  > /dev/null
+    
+      fi
+    fi    
+  fi       
+fi
+
+
+
+
 
 # Check if the network already exists
 network_exists=$(openstack network show -f value -c name "$network_name" 2>/dev/null)
@@ -351,27 +434,40 @@ current_time=$(date +"%H:%M:%S")
 devc_ip=$(openstack server show -f value -c addresses "${tag}_devc" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
 echo "$current_date $current_time IP devc = '$devc_ip'"
 
-floating_ips=$(openstack floating ip list -f value -c "Floating IP Address" )
+floating_ips=$(openstack floating ip list --status DOWN -f value -c "Floating IP Address" )
+
+if [ -n "$floating_ip_bastion" ]; then
+    echo "No Need to attch Bastion ."
+else
+
+
 floating_ip_bastion=$(echo "$floating_ips" | awk 'NR==1')
 current_time=$(date +"%H:%M:%S")
 echo "$current_date $current_time Floating_ip_bastion $floating_ip_bastion"
+openstack server add floating ip $server_name $floating_ip_bastion
+echo "$current_date $current_time Assigned floating IP $floating_ip_bastion to server $server_name"
+fi
+
+
+if [ -n "$floating_ip_proxy" ]; then
+    echo "No Need to attch Proxy ."
+else
+
 current_time=$(date +"%H:%M:%S")
 floating_ip_proxy=$(echo "$floating_ips" | awk 'NR==2')
 echo "$current_date $current_time Floating_ip_proxy $floating_ip_proxy"
-
-
-
-
-
-
-# Assign the floating IPs to the servers
-openstack server add floating ip $server_name $floating_ip_bastion
-
 openstack server add floating ip $proxy_server_name $floating_ip_proxy
+echo "$current_date $current_time Assigned floating IP $floating_ip_proxy to server $proxy_server_name"
+fi
+
+
+
+
+
+
+
 
 current_time=$(date +"%H:%M:%S")
-echo "$current_date $current_time Assigned floating IP $floating_ip_bastion to server $server_name"
-echo "$current_date $current_time Assigned floating IP $floating_ip_proxy to server $proxy_server_name"
 
 # Build base SSH config file
 ssh_config_file="config"

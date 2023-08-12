@@ -84,7 +84,7 @@ fi
 # ...
 current_time=$(date +"%H:%M:%S")
 # Remove floating IP addresses
-floating_ips=$(openstack floating ip list -f value -c ID)
+floating_ips=$(openstack floating ip list --tag $tag -f value -c ID)
 if [ -n "$floating_ips" ]; then
   while read -r floating_ip; do
     openstack floating ip delete "$floating_ip"

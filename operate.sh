@@ -99,11 +99,27 @@ if [ -z "$external_net" ]; then
     exit 1
 fi
 current_time=$(date +"%H:%M:%S")
-floating_ips=$(openstack floating ip list -f value -c "Floating IP Address" )
-floating_ip_bastion=$(echo "$floating_ips" | awk 'NR==1')
-echo "$current_date $current_time Floating_ip_bastion $floating_ip_bastion"
-floating_ip_proxy=$(echo "$floating_ips" | awk 'NR==2')
-echo "$current_date $current_time Floating_ip_proxy $floating_ip_proxy"
+# Run the openstack server list command and capture the output
+command_output=$(openstack server list)
+
+# Extract the line containing "BTH_bastion"
+desired_line=$(echo "$command_output" | grep "$server_name")
+
+# Extract the IP addresses part from the line
+ip_addresses_part=$(echo "$desired_line" | awk -F'[|]' '{print $5}')
+
+# Extract the second IP address
+floating_ip_bastion=$(echo "$ip_addresses_part" | awk -F',' '{print $2}' | tr -d ' ')
+
+#echo "Current  Floating IP for $server_name: $floating_ip_bastion"
+
+desired_line_p=$(echo "$command_output" | grep "$proxy_server_name")
+
+# Extract the IP addresses part from the line
+ip_addresses_part_p=$(echo "$desired_line_p" | awk -F'[|]' '{print $5}')
+
+# Extract the second IP address
+floating_ip_proxy=$(echo "$ip_addresses_part_p " | awk -F',' '{print $2}' | tr -d ' ')
 
 # Install telegraf on the server
 #echo "Install Telegraf and influxdb"
