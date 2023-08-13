@@ -96,7 +96,7 @@ current_time=$(date +"%H:%M:%S")
 if openstack flavor show "$flavor" >/dev/null 2>&1; then
     echo "$current_date $current_time Flavor $flavor exists."
 else
-    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Exiting program.Some time is takes time to show.You can try it again\033[31 "
+    echo -e "\033[31mError:$current_date $current_time Flavor $flavor does not exist.Please replace with desire one. Note:Some time it takes time to show.You can try it again\033[31 "
     
 fi
 
